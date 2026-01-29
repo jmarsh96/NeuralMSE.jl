@@ -174,23 +174,37 @@ If you use this package in your research, please cite:
 
 ```bibtex
 @article{marsh2025neural,
-  title={Neural Multiple Systems Estimation},
-  author={Marsh, Joe and Chan, David and Sainsbury-Dale, Matthew},
-  journal={arXiv preprint arXiv:2601.05859},
-  year={2025}
+  title={Neural Methods for Multiple Systems Estimation Models},
+  author={Joseph Marsh and Nathan A. Judd and Lax Chan and Rowland G. Seymour},
+  url={https://arxiv.org/abs/2601.05859},
+  year={2026}
 }
 ```
 
 Additionally, please cite the underlying NeuralEstimators framework:
 
 ```bibtex
-@article{sainsburydale2024neural,
-  title={Neural Bayes estimators for irregular spatial data using graph neural networks},
-  author={Sainsbury-Dale, Matthew and Zammit-Mangion, Andrew and Huser, Rapha{\"e}l},
-  journal={Journal of Computational and Graphical Statistics},
-  year={2024},
-  publisher={Taylor \& Francis}
-}
+@Manual{,
+    title = {{NeuralEstimators}: Likelihood-Free Parameter Estimation
+      using Neural Networks},
+    author = {Matthew Sainsbury-Dale},
+    year = {2024},
+    note = {R package version 0.1-2},
+    url = {https://CRAN.R-project.org/package=NeuralEstimators},
+    doi = {10.32614/CRAN.package.NeuralEstimators},
+  }
+
+@Article{,
+    title = {Likelihood-Free Parameter Estimation with Neural {B}ayes
+      Estimators},
+    author = {Matthew Sainsbury-Dale and Andrew Zammit-Mangion and
+      Raphael Huser},
+    journal = {The American Statistician},
+    year = {2024},
+    volume = {78},
+    pages = {1--14},
+    doi = {10.1080/00031305.2023.2249522},
+  }
 ```
 
 ## License
