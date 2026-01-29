@@ -4,9 +4,7 @@
 
 Neural network-based inference for Multiple Systems Estimation (MSE). This package provides pre-trained neural estimators for estimating population size and model parameters from capture-recapture data with multiple overlapping lists.
 
-This package builds upon [NeuralEstimators.jl](https://github.com/msainsburydale/NeuralEstimators.jl), a general-purpose Julia framework for neural likelihood-free inference. For details on the methodology and its application to MSE, see the paper:
-
-> Marsh, J., Chan, D., & Sainsbury-Dale, M. (2025). *Neural Multiple Systems Estimation*. [arXiv:2601.05859](https://arxiv.org/abs/2601.05859)
+This package builds upon [NeuralEstimators.jl](https://github.com/msainsburydale/NeuralEstimators.jl), a general-purpose Julia framework for neural likelihood-free inference. For details on the methodology and its application to MSE, see references at the bottom.
 
 ## Installation
 
