@@ -111,10 +111,6 @@ function _dist_to_named_tuple(dist)
     end
 end
 
-#=
-Training functions
-=#
-
 """
     train_nbe(K::Int; kwargs...) -> Tuple{PointEstimator, IntervalEstimator}
 
@@ -244,8 +240,8 @@ function train_nbe(K::Int;
 
     # Save if requested
     if savepath !== nothing
-        config_point = ModelConfig(
-            model_type=:nbe_point,
+        config = ModelConfig(
+            model_type=:nbe,
             K=K,
             width=width,
             n_hidden=n_hidden,
@@ -258,26 +254,10 @@ function train_nbe(K::Int;
             gamma_prior=_dist_to_named_tuple(gamma_dist)
         )
 
-        config_ci = ModelConfig(
-            model_type=:nbe_interval,
-            K=K,
-            width=width,
-            n_hidden=n_hidden,
-            train_size=train_size,
-            m=m,
-            censoring_lower=censoring_lower,
-            censoring_upper=censoring_upper,
-            intercept_prior=_dist_to_named_tuple(intercept_dist),
-            beta_prior=_dist_to_named_tuple(beta_dist),
-            gamma_prior=_dist_to_named_tuple(gamma_dist)
-        )
-
-        point_id = save_model(savepath, point_estimator, config_point)
-        ci_id = save_model(savepath, ci_estimator, config_ci)
+        model_id = save_nbe_model(savepath, point_estimator, ci_estimator, config)
 
         if verbose
-            println("Saved point estimator with ID: $point_id")
-            println("Saved interval estimator with ID: $ci_id")
+            println("Saved NBE model with ID: $model_id")
         end
     end
 
@@ -415,9 +395,6 @@ function train_npe(K::Int;
     return estimator
 end
 
-#=
-Internal simulation function (optimized version using pre-computed combinations)
-=#
 
 """
 Internal simulation function that accepts pre-computed combinations for efficiency.

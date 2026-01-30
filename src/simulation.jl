@@ -10,10 +10,6 @@ This module provides functions for:
 using Distributions
 using Combinatorics
 
-#=
-Internal helper functions
-=#
-
 """
     _enumerate_all_combinations(K::Int) -> Vector{String}
 
