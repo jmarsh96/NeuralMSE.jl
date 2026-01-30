@@ -381,8 +381,10 @@ Main execution
 =#
 
 # Default training configuration - modify these as needed
-const MODELS_DIR = get(ENV, "NEURALMSE_MODELS_DIR",
-                       joinpath(dirname(dirname(@__FILE__)), "trained_models"))
+const MODELS_DIR = get(
+    ENV, "NEURALMSE_MODELS_DIR",
+    joinpath(dirname(dirname(@__FILE__)), "trained_models")
+)
 
 const K_VALUES = [3, 4, 5, 6, 7]
 const MODEL_TYPES = [:nbe, :npe]
