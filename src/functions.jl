@@ -15,31 +15,17 @@ Internal model loading functions
 =#
 
 """
-Load NBE point estimator from pretrained models.
+Load NBE model (both point and interval estimators) from pretrained models.
 """
-function _load_nbe_estimator(K::Int, censoring_lower::Int, censoring_upper::Int)
+function _load_nbe_model(K::Int, censoring_lower::Int, censoring_upper::Int)
     models_path = get_models_path()
-    estimator, _ = load_model(models_path;
+    (point_estimator, interval_estimator), _ = load_model(models_path;
         K=K,
-        model_type=:nbe_point,
+        model_type=:nbe,
         censoring_lower=censoring_lower,
         censoring_upper=censoring_upper
     )
-    return estimator
-end
-
-"""
-Load NBE interval estimator from pretrained models.
-"""
-function _load_nbe_ci_estimator(K::Int, censoring_lower::Int, censoring_upper::Int)
-    models_path = get_models_path()
-    estimator, _ = load_model(models_path;
-        K=K,
-        model_type=:nbe_interval,
-        censoring_lower=censoring_lower,
-        censoring_upper=censoring_upper
-    )
-    return estimator
+    return point_estimator, interval_estimator
 end
 
 """
@@ -151,9 +137,8 @@ function infer_nbe(K::Int, censoring_lower::Int, censoring_upper::Int,
     # Prepare data (include censoring indicator if model expects it)
     X = prepare_data(data; censoring=(censoring_upper > 0))
 
-    # Load estimators
-    point_estimator = _load_nbe_estimator(K, censoring_lower, censoring_upper)
-    ci_estimator = _load_nbe_ci_estimator(K, censoring_lower, censoring_upper)
+    # Load NBE model (contains both point and interval estimators)
+    point_estimator, ci_estimator = _load_nbe_model(K, censoring_lower, censoring_upper)
 
     # Run inference
     median_estimates = vec(point_estimator(X))
