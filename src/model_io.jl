@@ -21,7 +21,9 @@ Configuration struct
 Configuration metadata for a trained NeuralMSE model.
 
 # Fields
-- `model_type::Symbol`: Type of estimator (`:nbe_point`, `:nbe_interval`, or `:npe`)
+- `model_type::Symbol`: Type of estimator (`:nbe` or `:npe`)
+  - `:nbe` models contain both a PointEstimator and IntervalEstimator
+  - `:npe` models contain a PosteriorEstimator
 - `K::Int`: Number of lists
 - `width::Int`: Width of MLP hidden layers
 - `n_hidden::Int`: Number of hidden layers
@@ -38,7 +40,7 @@ Configuration metadata for a trained NeuralMSE model.
 # Example
 ```julia
 config = ModelConfig(
-    model_type=:nbe_point,
+    model_type=:nbe,
     K=5,
     width=256,
     n_hidden=3,
@@ -158,7 +160,7 @@ The model is assigned a unique ID and added to the registry.
 
 # Arguments
 - `models_dir`: Directory containing the model registry and model files
-- `estimator`: The trained PointEstimator, IntervalEstimator, or PosteriorEstimator
+- `estimator`: The trained PosteriorEstimator (for NPE models)
 - `config`: ModelConfig with training metadata and priors
 
 # Returns
@@ -166,7 +168,7 @@ The assigned model ID (Int).
 
 # Example
 ```julia
-model_id = save_model("models/", point_estimator, config)
+model_id = save_model("models/", npe_estimator, config)
 println("Saved model with ID: \$model_id")
 ```
 """
@@ -195,6 +197,58 @@ function save_model(models_dir::String, estimator, config::ModelConfig)
 end
 
 """
+    save_nbe_model(models_dir::String, point_estimator, interval_estimator, config::ModelConfig) -> Int
+
+Save an NBE model containing both point and interval estimators.
+
+NBE models are saved as a single unit with both estimators in the same file.
+
+# Arguments
+- `models_dir`: Directory containing the model registry and model files
+- `point_estimator`: The trained PointEstimator
+- `interval_estimator`: The trained IntervalEstimator
+- `config`: ModelConfig with model_type=:nbe
+
+# Returns
+The assigned model ID (Int).
+
+# Example
+```julia
+model_id = save_nbe_model("models/", point_est, ci_est, config)
+```
+"""
+function save_nbe_model(models_dir::String, point_estimator, interval_estimator, config::ModelConfig)
+    if config.model_type != :nbe
+        error("save_nbe_model requires config.model_type == :nbe, got $(config.model_type)")
+    end
+
+    # Ensure directory exists
+    mkpath(models_dir)
+
+    # Load or initialize registry
+    registry_data = _load_registry_data(models_dir)
+
+    # Get next ID and increment
+    model_id = registry_data["next_id"]
+    registry_data["next_id"] = model_id + 1
+
+    # Add config to registry
+    registry_data["models"][model_id] = config
+
+    # Save both estimators in the same file
+    model_path = _get_model_path(models_dir, model_id)
+    JLD2.save(model_path, Dict(
+        "point_estimator" => point_estimator,
+        "interval_estimator" => interval_estimator
+    ))
+
+    # Save updated registry
+    _save_registry_data(models_dir, registry_data)
+
+    return model_id
+end
+
+"""
     load_model(models_dir::String, model_id::Int) -> Tuple{Any, ModelConfig}
 
 Load a model by its ID.
@@ -204,11 +258,19 @@ Load a model by its ID.
 - `model_id`: The model's unique ID
 
 # Returns
-A tuple (estimator, config) where estimator is the trained model and config is its ModelConfig.
+For NBE models (model_type=:nbe):
+- A tuple ((point_estimator, interval_estimator), config)
+
+For NPE models (model_type=:npe):
+- A tuple (estimator, config)
 
 # Example
 ```julia
-estimator, config = load_model("models/", 42)
+# Load NBE model
+(point_est, ci_est), config = load_model("models/", 42)
+
+# Load NPE model
+estimator, config = load_model("models/", 43)
 ```
 """
 function load_model(models_dir::String, model_id::Int)
@@ -221,16 +283,24 @@ function load_model(models_dir::String, model_id::Int)
 
     config = registry[model_id]
 
-    # Load estimator
+    # Load estimator(s)
     model_path = _get_model_path(models_dir, model_id)
     if !isfile(model_path)
         error("Model file not found: $model_path")
     end
 
     data = JLD2.load(model_path)
-    estimator = data["estimator"]
 
-    return estimator, config
+    # Handle NBE models (contain both point and interval estimators)
+    if config.model_type == :nbe
+        point_estimator = data["point_estimator"]
+        interval_estimator = data["interval_estimator"]
+        return (point_estimator, interval_estimator), config
+    else
+        # NPE or other single-estimator models
+        estimator = data["estimator"]
+        return estimator, config
+    end
 end
 
 """
@@ -244,16 +314,18 @@ Finds the first model in the registry that matches all specified parameters.
 # Arguments
 - `models_dir`: Directory containing the model registry and model files
 - `K`: Number of lists
-- `model_type`: Type of estimator (`:nbe_point`, `:nbe_interval`, or `:npe`)
+- `model_type`: Type of estimator (`:nbe` or `:npe`)
 - `censoring_lower`: Lower censoring bound (default: 0)
 - `censoring_upper`: Upper censoring bound (default: 0)
 
 # Returns
-A tuple (estimator, config) for the matching model.
+For NBE models: A tuple ((point_estimator, interval_estimator), config)
+For NPE models: A tuple (estimator, config)
 
 # Example
 ```julia
-estimator, config = load_model("models/"; K=5, model_type=:nbe_point)
+(point_est, ci_est), config = load_model("models/"; K=5, model_type=:nbe)
+npe_estimator, config = load_model("models/"; K=5, model_type=:npe)
 ```
 """
 function load_model(models_dir::String;
@@ -407,7 +479,7 @@ Check if a model with the given configuration exists.
 
 # Example
 ```julia
-if !model_exists("models/"; K=5, model_type=:nbe_point)
+if !model_exists("models/"; K=5, model_type=:nbe)
     # Train the model
 end
 ```
