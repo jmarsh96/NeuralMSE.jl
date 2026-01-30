@@ -47,7 +47,7 @@ Data preparation
 =#
 
 """
-    prepare_data(data::AbstractVector{<:Real}; censoring::Bool=false) -> Matrix{Float32}
+    prepare_data(data::AbstractVector{<:Real}; censoring::Union{Bool,Nothing}=nothing) -> Matrix{Float32}
 
 Prepare input data for neural estimation.
 
@@ -56,7 +56,10 @@ Applies log transformation to positive counts and handles censored observations
 
 # Arguments
 - `data`: Vector of counts ordered by list combination. Negative values indicate censored observations.
-- `censoring`: If true, appends a censoring indicator vector. Required when using models trained with censoring.
+- `censoring`: Controls censoring indicator output:
+  - `nothing` (default): Auto-detect based on presence of negative values
+  - `true`: Always append censoring indicator vector
+  - `false`: Never append censoring indicator vector
 
 # Returns
 A Float32 matrix of shape (n_features, 1) suitable for input to neural estimators.
@@ -72,16 +75,20 @@ For K lists, the data should have 2^K - 1 elements ordered by binary representat
 counts = [10, 5, 3, 8, 2, 4, 1]  # 7 = 2^3 - 1 observations
 X = prepare_data(counts)
 
-# With censoring (negative values indicate censored)
+# With censoring (negative values indicate censored) - auto-detected
 counts_censored = [10, -1, 3, -1, 2, 4, 1]  # -1 means censored
-X = prepare_data(counts_censored; censoring=true)
+X = prepare_data(counts_censored)  # Automatically detects censoring
 ```
 """
-function prepare_data(data::AbstractVector{<:Real}; censoring::Bool=false)
+function prepare_data(data::AbstractVector{<:Real}; censoring::Union{Bool,Nothing}=nothing)
+    # Auto-detect censoring if not specified
+    has_censored = any(x -> x < 0, data)
+    use_censoring = censoring === nothing ? has_censored : censoring
+
     # Log transform positive counts, keep negative (censored) as is
     out = [x > 0 ? log(x + 1) : Float32(x) for x in data]
 
-    if censoring
+    if use_censoring
         # Append censoring indicator vector (1 if censored, 0 otherwise)
         append!(out, Float32.(1 * (out .< 0)))
     end
