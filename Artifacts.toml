@@ -1,0 +1,28 @@
+# NeuralMSE Pretrained Models Artifact
+#
+# This file defines the lazy artifact for pretrained NeuralMSE models.
+# The models are downloaded on first use from GitHub releases.
+#
+# To update this file after uploading new models:
+# 1. Create a tarball of the models_jld2/ directory
+# 2. Upload to a GitHub release
+# 3. Compute the git-tree-sha1 and sha256 checksums
+# 4. Update the values below
+#
+# To compute checksums:
+#   using Pkg.Artifacts
+#   artifact_hash = create_artifact() do artifact_dir
+#       # Copy models to artifact_dir
+#       cp("models_jld2", artifact_dir; force=true)
+#   end
+#   # Then compute sha256 of the tarball
+
+[neuralmse_models_v2]
+# TODO: Update these values after uploading models to GitHub release
+git-tree-sha1 = "0000000000000000000000000000000000000000"
+lazy = true
+
+    [[neuralmse_models_v2.download]]
+    # TODO: Update URL to point to actual GitHub release
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v2.0.0/models.tar.gz"
+    sha256 = "0000000000000000000000000000000000000000000000000000000000000000"

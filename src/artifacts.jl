@@ -4,46 +4,113 @@ Artifact management for pretrained NeuralMSE models.
 This module provides:
 - Lazy downloading of pretrained models from GitHub releases
 - Model lookup and listing functions
+- Development mode support via NEURALMSE_MODELS_PATH environment variable
 =#
 
-using LazyArtifacts
 using DataFrames
+using Pkg.Artifacts: @artifact_str, artifact_exists, artifact_hash, ensure_artifact_installed
 
 # Artifact name for pretrained models
 const ARTIFACT_NAME = "neuralmse_models_v2"
+
+# Flag to track if artifacts are available (checked at runtime, not compile time)
+const _artifacts_available = Ref{Union{Bool, Nothing}}(nothing)
 
 #=
 Artifact path management
 =#
 
 """
+    _check_artifacts_available() -> Bool
+
+Check if the artifact system is properly configured (valid Artifacts.toml).
+"""
+function _check_artifacts_available()
+    if _artifacts_available[] === nothing
+        try
+            # Check if the artifact has a valid hash (not all zeros)
+            artifacts_toml = joinpath(dirname(@__DIR__), "Artifacts.toml")
+            if isfile(artifacts_toml)
+                content = read(artifacts_toml, String)
+                # Check for placeholder hash (all zeros)
+                if occursin("0000000000000000000000000000000000000000", content)
+                    _artifacts_available[] = false
+                else
+                    _artifacts_available[] = true
+                end
+            else
+                _artifacts_available[] = false
+            end
+        catch
+            _artifacts_available[] = false
+        end
+    end
+    return _artifacts_available[]
+end
+
+"""
     get_models_path() -> String
 
 Get the path to the pretrained models directory.
 
-This function triggers a lazy download of the models artifact if it
-hasn't been downloaded yet. The first call may take some time to
-download the models (~400MB).
+The path is determined in the following order:
+1. If `NEURALMSE_MODELS_PATH` environment variable is set, use that path
+2. Otherwise, try to load from the lazy artifact (downloads if needed)
+
+For development/training, set `NEURALMSE_MODELS_PATH` to your local models directory.
 
 # Returns
 The path to the models directory containing `trained_models.jld2` and model files.
 
 # Example
 ```julia
+# Use pretrained models (downloads automatically)
 models_path = get_models_path()
-# Returns something like "~/.julia/artifacts/abc123..."
+
+# Or set environment variable for local development:
+# ENV["NEURALMSE_MODELS_PATH"] = "/path/to/trained_models"
+# models_path = get_models_path()
 ```
 """
 function get_models_path()
+    # Check for development/custom path first
+    custom_path = get(ENV, "NEURALMSE_MODELS_PATH", "")
+    if !isempty(custom_path)
+        if !isdir(custom_path)
+            error("NEURALMSE_MODELS_PATH is set to '$custom_path' but directory does not exist")
+        end
+        return custom_path
+    end
+
+    # Check if artifacts are available
+    if !_check_artifacts_available()
+        error("""
+            Pretrained models not available.
+
+            The Artifacts.toml has placeholder values (models not yet uploaded to GitHub).
+
+            For development/training, set the models path environment variable:
+                ENV["NEURALMSE_MODELS_PATH"] = "/path/to/trained_models"
+
+            Or run Julia with:
+                NEURALMSE_MODELS_PATH=/path/to/trained_models julia ...
+            """)
+    end
+
+    # Try to use the artifact
     try
         return @artifact_str(ARTIFACT_NAME)
     catch e
-        if e isa ErrorException && occursin("Artifact", string(e))
-            error("Failed to download pretrained models. " *
-                  "Check your internet connection and try again. " *
-                  "Error: $e")
-        end
-        rethrow(e)
+        error("""
+            Failed to download pretrained models.
+
+            Check your internet connection and try again.
+
+            For development/training, set the models path:
+                ENV["NEURALMSE_MODELS_PATH"] = "/path/to/trained_models"
+
+            Original error: $e
+            """)
     end
 end
 
