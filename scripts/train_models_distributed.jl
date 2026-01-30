@@ -383,7 +383,7 @@ Main execution
 # Default training configuration - modify these as needed
 const MODELS_DIR = get(
     ENV, "NEURALMSE_MODELS_DIR",
-    joinpath(dirname(dirname(@__FILE__)), "trained_models")
+    joinpath(dirname(dirname(@__FILE__)), "models")
 )
 
 const K_VALUES = collect(3:15)
