@@ -386,9 +386,9 @@ const MODELS_DIR = get(
     joinpath(dirname(dirname(@__FILE__)), "trained_models")
 )
 
-const K_VALUES = [3, 4, 5, 6, 7]
+const K_VALUES = collect(3:15)
 const MODEL_TYPES = [:nbe, :npe]
-const CENSORING_CONFIGS = [(0, 0)]  # Add more like [(0,0), (1,5), (1,10)] for censoring
+const CENSORING_CONFIGS = [(x,y) for x in 0:1 for y in x:16]
 
 # Training hyperparameters
 const WIDTH = 256
