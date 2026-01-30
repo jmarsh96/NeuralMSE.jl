@@ -6,8 +6,9 @@ using Combinatorics
 @testset "Model I/O" begin
 
     @testset "ModelConfig" begin
-        config = ModelConfig(
-            model_type=:nbe_point,
+        # Test NBE config
+        config_nbe = ModelConfig(
+            model_type=:nbe,
             K=5,
             width=64,
             n_hidden=2,
@@ -16,23 +17,72 @@ using Combinatorics
             gamma_prior=(type=:Normal, μ=0.0, σ=4.0)
         )
 
-        @test config.model_type == :nbe_point
-        @test config.K == 5
-        @test config.width == 64
-        @test config.n_hidden == 2
-        @test config.encoding_dim === nothing
-        @test config.censoring_lower == 0
-        @test config.censoring_upper == 0
+        @test config_nbe.model_type == :nbe
+        @test config_nbe.K == 5
+        @test config_nbe.width == 64
+        @test config_nbe.n_hidden == 2
+        @test config_nbe.encoding_dim === nothing
+        @test config_nbe.censoring_lower == 0
+        @test config_nbe.censoring_upper == 0
+
+        # Test NPE config
+        config_npe = ModelConfig(
+            model_type=:npe,
+            K=4,
+            width=128,
+            n_hidden=3,
+            encoding_dim=64,
+            intercept_prior=(type=:Uniform, a=1.0, b=10.0),
+            beta_prior=(type=:Normal, μ=0.0, σ=4.0),
+            gamma_prior=(type=:Normal, μ=0.0, σ=4.0)
+        )
+
+        @test config_npe.model_type == :npe
+        @test config_npe.encoding_dim == 64
     end
 
-    @testset "save_model and load_model" begin
+    @testset "save_model and load_model for NPE" begin
         mktempdir() do tmpdir
-            # Create a simple test "estimator" (just a number for testing)
-            # In real use this would be a PointEstimator, etc.
+            # Test with a simple "estimator" (just for testing serialization)
             test_estimator = [1.0, 2.0, 3.0]
 
             config = ModelConfig(
-                model_type=:nbe_point,
+                model_type=:npe,
+                K=3,
+                width=32,
+                n_hidden=1,
+                encoding_dim=16,
+                intercept_prior=(type=:Uniform, a=1.0, b=10.0),
+                beta_prior=(type=:Normal, μ=0.0, σ=4.0),
+                gamma_prior=(type=:Normal, μ=0.0, σ=4.0)
+            )
+
+            # Test save
+            model_id = save_model(tmpdir, test_estimator, config)
+            @test model_id == 1
+
+            # Test load by ID
+            loaded_est, loaded_config = load_model(tmpdir, model_id)
+            @test loaded_est == test_estimator
+            @test loaded_config.K == 3
+            @test loaded_config.model_type == :npe
+
+            # Test load by config match
+            loaded_est2, loaded_config2 = load_model(tmpdir;
+                K=3, model_type=:npe
+            )
+            @test loaded_est2 == test_estimator
+        end
+    end
+
+    @testset "save_nbe_model and load_model for NBE" begin
+        mktempdir() do tmpdir
+            # Test with simple "estimators"
+            test_point = [1.0, 2.0, 3.0]
+            test_interval = [4.0, 5.0, 6.0]
+
+            config = ModelConfig(
+                model_type=:nbe,
                 K=3,
                 width=32,
                 n_hidden=1,
@@ -42,24 +92,30 @@ using Combinatorics
             )
 
             # Test save
-            model_id = save_model(tmpdir, test_estimator, config)
-            @test model_id == 1  # First model should get ID 1
+            model_id = save_nbe_model(tmpdir, test_point, test_interval, config)
+            @test model_id == 1
 
-            # Test load by ID
-            loaded_est, loaded_config = load_model(tmpdir, model_id)
-            @test loaded_est == test_estimator
+            # Test load by ID - returns tuple of estimators
+            (loaded_point, loaded_interval), loaded_config = load_model(tmpdir, model_id)
+            @test loaded_point == test_point
+            @test loaded_interval == test_interval
             @test loaded_config.K == 3
-            @test loaded_config.model_type == :nbe_point
+            @test loaded_config.model_type == :nbe
 
             # Test load by config match
-            loaded_est2, loaded_config2 = load_model(tmpdir;
-                K=3, model_type=:nbe_point
+            (loaded_point2, loaded_interval2), _ = load_model(tmpdir;
+                K=3, model_type=:nbe
             )
-            @test loaded_est2 == test_estimator
+            @test loaded_point2 == test_point
+            @test loaded_interval2 == test_interval
+        end
+    end
 
-            # Save another model
-            config2 = ModelConfig(
-                model_type=:nbe_interval,
+    @testset "list_models and model management" begin
+        mktempdir() do tmpdir
+            # Save an NBE model
+            config_nbe = ModelConfig(
+                model_type=:nbe,
                 K=3,
                 width=32,
                 n_hidden=1,
@@ -67,27 +123,42 @@ using Combinatorics
                 beta_prior=(type=:Normal, μ=0.0, σ=4.0),
                 gamma_prior=(type=:Normal, μ=0.0, σ=4.0)
             )
-            model_id2 = save_model(tmpdir, [4.0, 5.0, 6.0], config2)
-            @test model_id2 == 2
+            nbe_id = save_nbe_model(tmpdir, [1.0], [2.0], config_nbe)
+
+            # Save an NPE model
+            config_npe = ModelConfig(
+                model_type=:npe,
+                K=3,
+                width=32,
+                n_hidden=1,
+                encoding_dim=16,
+                intercept_prior=(type=:Uniform, a=1.0, b=10.0),
+                beta_prior=(type=:Normal, μ=0.0, σ=4.0),
+                gamma_prior=(type=:Normal, μ=0.0, σ=4.0)
+            )
+            npe_id = save_model(tmpdir, [3.0], config_npe)
 
             # Test list_models
             models_df = list_models(tmpdir)
             @test nrow(models_df) == 2
-            @test 1 in models_df.id
-            @test 2 in models_df.id
+            @test nbe_id in models_df.id
+            @test npe_id in models_df.id
 
             # Test find_model
-            found_id = find_model(tmpdir; K=3, model_type=:nbe_interval)
-            @test found_id == 2
+            found_nbe = find_model(tmpdir; K=3, model_type=:nbe)
+            found_npe = find_model(tmpdir; K=3, model_type=:npe)
+            @test found_nbe == nbe_id
+            @test found_npe == npe_id
 
             # Test model_exists
-            @test model_exists(tmpdir; K=3, model_type=:nbe_point)
-            @test !model_exists(tmpdir; K=5, model_type=:nbe_point)
+            @test model_exists(tmpdir; K=3, model_type=:nbe)
+            @test model_exists(tmpdir; K=3, model_type=:npe)
+            @test !model_exists(tmpdir; K=5, model_type=:nbe)
 
             # Test remove_model
-            remove_model(tmpdir, model_id)
-            @test !model_exists(tmpdir; K=3, model_type=:nbe_point)
-            @test model_exists(tmpdir; K=3, model_type=:nbe_interval)
+            remove_model(tmpdir, nbe_id)
+            @test !model_exists(tmpdir; K=3, model_type=:nbe)
+            @test model_exists(tmpdir; K=3, model_type=:npe)
         end
     end
 
@@ -183,16 +254,18 @@ end
                 verbose=false
             )
 
-            # Check models were saved
+            # Check model was saved (single NBE model now)
             models_df = list_models(tmpdir)
-            @test nrow(models_df) == 2  # point + interval
+            @test nrow(models_df) == 1
+            @test models_df.model_type[1] == :nbe
 
             # Load and verify
-            loaded_point, config = load_model(tmpdir; K=3, model_type=:nbe_point)
+            (loaded_point, loaded_ci), config = load_model(tmpdir; K=3, model_type=:nbe)
 
             # Test inference produces same results
             data = rand(Float32, 2^K - 1, 1)
             @test point_est(data) ≈ loaded_point(data)
+            @test ci_est(data) ≈ loaded_ci(data)
         end
     end
 
