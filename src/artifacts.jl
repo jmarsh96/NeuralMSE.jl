@@ -8,12 +8,13 @@ This module provides:
 =#
 
 using DataFrames
-using Pkg.Artifacts: @artifact_str, artifact_exists, artifact_hash, ensure_artifact_installed
+using Pkg.Artifacts: artifact_meta, artifact_path, ensure_artifact_installed
+using Pkg.TOML
 
 # Artifact name for pretrained models
 const ARTIFACT_NAME = "neuralmse_models_v2"
 
-# Flag to track if artifacts are available (checked at runtime, not compile time)
+# Cache for artifacts availability check
 const _artifacts_available = Ref{Union{Bool, Nothing}}(nothing)
 
 #=
@@ -28,7 +29,6 @@ Check if the artifact system is properly configured (valid Artifacts.toml).
 function _check_artifacts_available()
     if _artifacts_available[] === nothing
         try
-            # Check if the artifact has a valid hash (not all zeros)
             artifacts_toml = joinpath(dirname(@__DIR__), "Artifacts.toml")
             if isfile(artifacts_toml)
                 content = read(artifacts_toml, String)
@@ -46,6 +46,22 @@ function _check_artifacts_available()
         end
     end
     return _artifacts_available[]
+end
+
+"""
+    _get_artifact_path() -> String
+
+Get the artifact path using runtime API (not compile-time macro).
+"""
+function _get_artifact_path()
+    artifacts_toml = joinpath(dirname(@__DIR__), "Artifacts.toml")
+    meta = artifact_meta(ARTIFACT_NAME, artifacts_toml)
+    if meta === nothing
+        error("Artifact '$ARTIFACT_NAME' not found in Artifacts.toml")
+    end
+    hash = Base.SHA1(meta["git-tree-sha1"])
+    ensure_artifact_installed(ARTIFACT_NAME, meta, artifacts_toml)
+    return artifact_path(hash)
 end
 
 """
@@ -97,9 +113,9 @@ function get_models_path()
             """)
     end
 
-    # Try to use the artifact
+    # Try to use the artifact (runtime resolution)
     try
-        return @artifact_str(ARTIFACT_NAME)
+        return _get_artifact_path()
     catch e
         error("""
             Failed to download pretrained models.

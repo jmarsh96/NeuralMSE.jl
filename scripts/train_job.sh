@@ -33,6 +33,11 @@ echo "Working directory: $(pwd)"
 echo "=============================================="
 
 
+# Set models directory (required for development/training)
+export NEURALMSE_MODELS_PATH="${NEURALMSE_MODELS_PATH:-$(pwd)/trained_models}"
+mkdir -p "$NEURALMSE_MODELS_PATH"
+echo "Models directory: $NEURALMSE_MODELS_PATH"
+
 echo ""
 echo "Checking dependencies..."
 julia --project=. -e 'using Pkg; Pkg.instantiate()'

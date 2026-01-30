@@ -20,7 +20,8 @@ using Folds
 using Flux
 using Dates
 using DataFrames
-using LazyArtifacts
+# Note: Artifacts are loaded at runtime via Pkg.Artifacts in artifacts.jl
+# to avoid compile-time errors when Artifacts.toml has placeholder values
 
 import NeuralEstimators: sampleposterior
 
