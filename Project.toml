@@ -13,6 +13,7 @@ Folds = "41a02a25-b8f0-4f67-bc48-60067656b558"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 LazyArtifacts = "4af54fe1-eca0-43a8-85a7-787d91b784e3"
 NeuralEstimators = "38f6df31-6b4a-4144-b2af-7ace2da57606"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [compat]
 Combinatorics = "1"
