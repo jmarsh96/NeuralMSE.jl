@@ -399,8 +399,8 @@ function train_all_models(
 
     println("=" ^ 70)
 
-    # Optionally clean up temp directory
-    # rm(temp_dir; recursive=true, force=true)
+    # clean up temp directory
+    rm(temp_dir; recursive=true, force=true)
 
     return results
 end
@@ -411,7 +411,7 @@ Main execution
 
 # Default training configuration - modify these as needed
 const MODELS_DIR = get(ENV, "NEURALMSE_MODELS_PATH",
-                       joinpath(dirname(dirname(@__FILE__)), "trained_models"))
+                       joinpath(dirname(dirname(@__FILE__)), "models"))
 
 const K_VALUES = collect(3:15)
 const MODEL_TYPES = [:nbe, :npe]
