@@ -48,7 +48,11 @@ println("Running with $(nworkers()) workers")
     using NeuralMSE: ModelConfig
     using Dates
     using JLD2
+    using DataFrames
 end
+
+# Also load on main process for reporting
+using DataFrames
 
 #=
 Worker function: Train and save to individual file (no concurrent access)
