@@ -2,50 +2,53 @@
 Distributed Training Script for NeuralMSE Models
 
 This script trains multiple NBE and NPE models in parallel using Julia's
-distributed computing capabilities. Supports both local execution and
-SLURM cluster environments via SlurmClusterManager.
+distributed computing capabilities.
 
 Usage:
-    # Submit as SLURM job (recommended)
+    # Submit as SLURM job (uses CPUs allocated to the job)
     sbatch scripts/train_job.sh
 
-    # Or run locally for testing
-    julia --project scripts/train_models_distributed.jl --local
+    # Run locally
+    julia --project scripts/train_models_distributed.jl
+
+    # Specify number of workers explicitly
+    julia --project scripts/train_models_distributed.jl --workers=4
 =#
 
 using Distributed
 
-# Parse command line arguments
-const USE_LOCAL = "--local" in ARGS
-
-if USE_LOCAL
-    # Local execution - use available cores
-    n_workers = max(1, Sys.CPU_THREADS ÷ 2 - 1)
-    println("Running locally with $n_workers workers")
-    addprocs(n_workers; exeflags="--project")
-else
-    # SLURM execution
-    if !haskey(ENV, "SLURM_JOB_ID")
-        error("Not running under SLURM. Use --local flag for local execution, or submit via sbatch.")
+# Parse command line arguments for --workers=N
+function get_requested_workers()
+    for arg in ARGS
+        if startswith(arg, "--workers=")
+            return parse(Int, split(arg, "=")[2])
+        end
     end
-
-    using SlurmClusterManager
-
-    # Get SLURM allocation info
-    n_tasks = parse(Int, get(ENV, "SLURM_NTASKS", "1"))
-    job_id = ENV["SLURM_JOB_ID"]
-
-    println("SLURM Job ID: $job_id")
-    println("Requested tasks: $n_tasks")
-
-    # Add workers via SlurmClusterManager
-    # This spawns workers across the allocated nodes/tasks
-    addprocs(SlurmManager(); exeflags=["--project=$(Base.active_project())"])
-
-    println("Added $(nworkers()) workers")
+    return nothing
 end
 
-println("Running with $(nworkers()) workers on $(length(unique(map(w -> Distributed.remotecall_fetch(() -> gethostname(), w), workers())))) node(s)")
+# Determine number of workers to use
+requested = get_requested_workers()
+if requested !== nothing
+    n_workers = requested
+elseif haskey(ENV, "SLURM_CPUS_PER_TASK")
+    # SLURM: use allocated CPUs minus 1 for main process
+    n_workers = max(1, parse(Int, ENV["SLURM_CPUS_PER_TASK"]) - 1)
+else
+    # Local: use half of available cores
+    n_workers = max(1, Sys.CPU_THREADS ÷ 2 - 1)
+end
+
+# Print environment info
+if haskey(ENV, "SLURM_JOB_ID")
+    println("SLURM Job ID: $(ENV["SLURM_JOB_ID"])")
+    println("SLURM CPUs per task: $(get(ENV, "SLURM_CPUS_PER_TASK", "N/A"))")
+end
+println("Starting $n_workers workers...")
+
+# Add local workers (works reliably on SLURM single-node jobs)
+addprocs(n_workers; exeflags=["--project=$(Base.active_project())"])
+println("Running with $(nworkers()) workers on $(gethostname())")
 
 # Load packages on all workers
 @everywhere begin
