@@ -3,10 +3,10 @@
 #SBATCH --output=logs/neuralmse_%j.out
 #SBATCH --error=logs/neuralmse_%j.err
 #SBATCH --nodes=1
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=32G
-#SBATCH --time=24:00:00
+#SBATCH --ntasks=8
+#SBATCH --cpus-per-task=1
+#SBATCH --mem-per-cpu=8G
+#SBATCH --time=48:00:00
 
 set -e
 
@@ -37,6 +37,9 @@ echo "Models directory: $NEURALMSE_MODELS_PATH"
 echo ""
 echo "Checking dependencies..."
 julia --project=. -e 'using Pkg; Pkg.instantiate()'
+
+# Add SlurmClusterManager if not present
+julia --project=. -e 'using Pkg; "SlurmClusterManager" in keys(Pkg.project().dependencies) || Pkg.add("SlurmClusterManager")'
 
 # Run the training script
 echo ""

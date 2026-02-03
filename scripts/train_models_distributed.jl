@@ -2,102 +2,66 @@
 Distributed Training Script for NeuralMSE Models
 
 This script trains multiple NBE and NPE models in parallel using Julia's
-distributed computing capabilities.
+distributed computing via SlurmClusterManager. Each worker saves to its own
+file to avoid concurrent file access, then a single worker collects all
+results at the end.
 
 Usage:
-    # Submit as SLURM job (uses CPUs allocated to the job)
+    # Submit as SLURM job
     sbatch scripts/train_job.sh
 
-    # Run locally
-    julia --project scripts/train_models_distributed.jl
-
-    # Specify number of workers explicitly
-    julia --project scripts/train_models_distributed.jl --workers=4
+    # Run locally with --local flag
+    julia --project scripts/train_models_distributed.jl --local
 =#
 
-using Distributed
+using Distributed, SlurmClusterManager
 
-# Parse command line arguments for --workers=N
-function get_requested_workers()
-    for arg in ARGS
-        if startswith(arg, "--workers=")
-            return parse(Int, split(arg, "=")[2])
-        end
-    end
-    return nothing
-end
+# Parse command line arguments
+const USE_LOCAL = "--local" in ARGS
 
-# Determine number of workers to use
-requested = get_requested_workers()
-if requested !== nothing
-    n_workers = requested
-elseif haskey(ENV, "SLURM_CPUS_PER_TASK")
-    # SLURM: use allocated CPUs minus 1 for main process
-    n_workers = max(1, parse(Int, ENV["SLURM_CPUS_PER_TASK"]) - 1)
-else
-    # Local: use half of available cores
+if USE_LOCAL
+    # Local execution - use available cores
     n_workers = max(1, Sys.CPU_THREADS ÷ 2 - 1)
+    println("Running locally with $n_workers workers")
+    addprocs(n_workers; exeflags="--project=$(Base.active_project())")
+else
+    # SLURM execution
+    if !haskey(ENV, "SLURM_JOB_ID")
+        error("Not running under SLURM. Use --local flag for local execution, or submit via sbatch.")
+    end
+
+    using SlurmClusterManager
+
+    job_id = ENV["SLURM_JOB_ID"]
+    println("SLURM Job ID: $job_id")
+
+    # Add workers via SlurmClusterManager
+    addprocs(SlurmManager(); exeflags=["--project=$(Base.active_project())"])
+    println("Added $(nworkers()) workers")
 end
 
-# Print environment info
-if haskey(ENV, "SLURM_JOB_ID")
-    println("SLURM Job ID: $(ENV["SLURM_JOB_ID"])")
-    println("SLURM CPUs per task: $(get(ENV, "SLURM_CPUS_PER_TASK", "N/A"))")
-end
-println("Starting $n_workers workers...")
-
-# Add local workers (works reliably on SLURM single-node jobs)
-addprocs(n_workers; exeflags=["--project=$(Base.active_project())"])
-println("Running with $(nworkers()) workers on $(gethostname())")
+println("Running with $(nworkers()) workers")
 
 # Load packages on all workers
 @everywhere begin
     using NeuralMSE
+    using NeuralMSE: ModelConfig
     using Dates
+    using JLD2
 end
 
 #=
-File-based locking for safe concurrent registry updates
+Worker function: Train and save to individual file (no concurrent access)
 =#
 
 @everywhere begin
     """
-    Acquire an exclusive lock on the model registry.
-    Returns the lock file handle (must be closed to release).
+    Train a model and save to an individual temp file.
+    Returns the path to the saved file, or nothing if skipped/failed.
     """
-    function acquire_registry_lock(models_dir::String; timeout::Int=120)
-        lock_path = joinpath(models_dir, ".registry.lock")
-        mkpath(models_dir)
-
-        start_time = time()
-        while true
-            try
-                # Try to create lock file exclusively
-                lock_file = open(lock_path, "w"; lock=true)
-                write(lock_file, "$(getpid())\n$(now())\n$(gethostname())")
-                flush(lock_file)
-                return lock_file
-            catch e
-                if time() - start_time > timeout
-                    error("Timeout waiting for registry lock after $(timeout)s")
-                end
-                sleep(0.1 + rand() * 0.3)  # Random backoff to reduce contention
-            end
-        end
-    end
-
-    """
-    Release the registry lock.
-    """
-    function release_registry_lock(lock_file::IO)
-        close(lock_file)
-    end
-
-    """
-    Train and save a model with proper locking.
-    """
-    function train_and_save_locked(
-        models_dir::String,
+    function train_and_save_individual(
+        temp_dir::String,
+        job_idx::Int,
         model_type::Symbol,
         K::Int;
         censoring_lower::Int=0,
@@ -114,42 +78,25 @@ File-based locking for safe concurrent registry updates
         worker_id = myid()
         hostname = gethostname()
 
-        # Check if model already exists (quick check without lock)
-        if model_exists(models_dir; K=K, model_type=model_type,
-                       censoring_lower=censoring_lower, censoring_upper=censoring_upper)
-            verbose && println("[Worker $worker_id@$hostname] Model already exists: $model_type K=$K censor=($censoring_lower,$censoring_upper)")
-            return nothing
-        end
+        # Each job gets its own output file
+        output_file = joinpath(temp_dir, "job_$(job_idx).jld2")
 
         verbose && println("[Worker $worker_id@$hostname] Training $model_type K=$K censor=($censoring_lower,$censoring_upper)...")
         train_start = now()
 
-        # Train the model (this is the time-consuming part, no lock needed)
-        if model_type == :nbe
-            point_est, ci_est = train_nbe(K;
-                width=width,
-                n_hidden=n_hidden,
-                train_size=train_size,
-                m=m,
-                epochs=epochs_nbe,
-                censoring_lower=censoring_lower,
-                censoring_upper=censoring_upper,
-                savepath=nothing,  # Don't save yet
-                verbose=verbose
-            )
-
-            train_elapsed = now() - train_start
-            verbose && println("[Worker $worker_id@$hostname] Training complete in $train_elapsed, acquiring lock...")
-
-            # Now acquire lock and save
-            lock_file = acquire_registry_lock(models_dir)
-            try
-                # Double-check model doesn't exist (another worker might have saved it)
-                if model_exists(models_dir; K=K, model_type=model_type,
-                               censoring_lower=censoring_lower, censoring_upper=censoring_upper)
-                    verbose && println("[Worker $worker_id@$hostname] Model was saved by another worker, skipping")
-                    return nothing
-                end
+        try
+            if model_type == :nbe
+                point_est, ci_est = train_nbe(K;
+                    width=width,
+                    n_hidden=n_hidden,
+                    train_size=train_size,
+                    m=m,
+                    epochs=epochs_nbe,
+                    censoring_lower=censoring_lower,
+                    censoring_upper=censoring_upper,
+                    savepath=nothing,
+                    verbose=verbose
+                )
 
                 config = ModelConfig(
                     model_type=:nbe,
@@ -162,39 +109,27 @@ File-based locking for safe concurrent registry updates
                     censoring_upper=censoring_upper
                 )
 
-                model_id = save_nbe_model(models_dir, point_est, ci_est, config)
-                verbose && println("[Worker $worker_id@$hostname] Saved NBE model ID=$model_id")
-                return model_id
-            finally
-                release_registry_lock(lock_file)
-            end
+                # Save to individual file
+                jldsave(output_file;
+                    model_type=:nbe,
+                    point_estimator=point_est,
+                    interval_estimator=ci_est,
+                    config=config
+                )
 
-        elseif model_type == :npe
-            estimator = train_npe(K;
-                width=width,
-                n_hidden=n_hidden,
-                encoding_dim=encoding_dim,
-                train_size=train_size,
-                m=m,
-                epochs=epochs_npe,
-                censoring_lower=censoring_lower,
-                censoring_upper=censoring_upper,
-                savepath=nothing,  # Don't save yet
-                verbose=verbose
-            )
-
-            train_elapsed = now() - train_start
-            verbose && println("[Worker $worker_id@$hostname] Training complete in $train_elapsed, acquiring lock...")
-
-            # Now acquire lock and save
-            lock_file = acquire_registry_lock(models_dir)
-            try
-                # Double-check model doesn't exist
-                if model_exists(models_dir; K=K, model_type=model_type,
-                               censoring_lower=censoring_lower, censoring_upper=censoring_upper)
-                    verbose && println("[Worker $worker_id@$hostname] Model was saved by another worker, skipping")
-                    return nothing
-                end
+            elseif model_type == :npe
+                estimator = train_npe(K;
+                    width=width,
+                    n_hidden=n_hidden,
+                    encoding_dim=encoding_dim,
+                    train_size=train_size,
+                    m=m,
+                    epochs=epochs_npe,
+                    censoring_lower=censoring_lower,
+                    censoring_upper=censoring_upper,
+                    savepath=nothing,
+                    verbose=verbose
+                )
 
                 config = ModelConfig(
                     model_type=:npe,
@@ -208,30 +143,99 @@ File-based locking for safe concurrent registry updates
                     censoring_upper=censoring_upper
                 )
 
-                model_id = save_model(models_dir, estimator, config)
-                verbose && println("[Worker $worker_id@$hostname] Saved NPE model ID=$model_id")
-                return model_id
-            finally
-                release_registry_lock(lock_file)
+                # Save to individual file
+                jldsave(output_file;
+                    model_type=:npe,
+                    estimator=estimator,
+                    config=config
+                )
+            else
+                error("Unknown model type: $model_type")
             end
-        else
-            error("Unknown model type: $model_type")
+
+            train_elapsed = now() - train_start
+            verbose && println("[Worker $worker_id@$hostname] Completed in $train_elapsed, saved to $output_file")
+
+            return output_file
+
+        catch e
+            verbose && println("[Worker $worker_id@$hostname] ERROR: $(sprint(showerror, e))")
+            rethrow(e)
         end
     end
 end
 
 #=
-Training configuration
+Main process: Collect all individual files into final registry
 =#
 
 """
-Generate list of training jobs as named tuples.
+Collect all trained models from temp files into the final models directory.
+This runs on the main process only, avoiding concurrent file access.
+"""
+function collect_models(temp_dir::String, models_dir::String; verbose::Bool=true)
+    verbose && println("\nCollecting trained models...")
+
+    mkpath(models_dir)
+
+    # Find all job files
+    job_files = filter(f -> startswith(f, "job_") && endswith(f, ".jld2"), readdir(temp_dir))
+
+    if isempty(job_files)
+        verbose && println("No trained models found in $temp_dir")
+        return 0
+    end
+
+    verbose && println("Found $(length(job_files)) trained models to collect")
+
+    collected = 0
+    for job_file in job_files
+        filepath = joinpath(temp_dir, job_file)
+        try
+            jldopen(filepath, "r") do f
+                model_type = f["model_type"]
+                config = f["config"]
+
+                # Check if model already exists
+                if model_exists(models_dir; K=config.K, model_type=config.model_type,
+                               censoring_lower=config.censoring_lower,
+                               censoring_upper=config.censoring_upper)
+                    verbose && println("  Skipping (already exists): $(config.model_type) K=$(config.K)")
+                    return
+                end
+
+                if model_type == :nbe
+                    point_est = f["point_estimator"]
+                    interval_est = f["interval_estimator"]
+                    model_id = save_nbe_model(models_dir, point_est, interval_est, config)
+                    verbose && println("  Collected NBE model ID=$model_id: K=$(config.K) censor=($(config.censoring_lower),$(config.censoring_upper))")
+                else
+                    estimator = f["estimator"]
+                    model_id = save_model(models_dir, estimator, config)
+                    verbose && println("  Collected NPE model ID=$model_id: K=$(config.K) censor=($(config.censoring_lower),$(config.censoring_upper))")
+                end
+                collected += 1
+            end
+        catch e
+            verbose && println("  Error processing $job_file: $(sprint(showerror, e))")
+        end
+    end
+
+    verbose && println("Collected $collected models")
+    return collected
+end
+
+#=
+Training configuration and execution
+=#
+
+"""
+Generate list of training jobs.
 """
 function generate_training_jobs(;
     K_values::Vector{Int}=[3, 4, 5, 6, 7],
     model_types::Vector{Symbol}=[:nbe, :npe],
-    censoring_configs::Vector{Tuple{Int,Int}}=[(0, 0)],  # (lower, upper) pairs
-    kwargs...
+    censoring_configs::Vector{Tuple{Int,Int}}=[(0, 0)]
 )
     jobs = []
     for K in K_values
@@ -241,8 +245,7 @@ function generate_training_jobs(;
                     model_type=model_type,
                     K=K,
                     censoring_lower=censoring_lower,
-                    censoring_upper=censoring_upper,
-                    kwargs...
+                    censoring_upper=censoring_upper
                 ))
             end
         end
@@ -267,7 +270,9 @@ function train_all_models(
     m::Int=1,
     verbose::Bool=true
 )
-    mkpath(models_dir)
+    # Create temp directory for individual job outputs
+    temp_dir = joinpath(models_dir, ".temp_training")
+    mkpath(temp_dir)
 
     jobs = generate_training_jobs(;
         K_values=K_values,
@@ -279,11 +284,12 @@ function train_all_models(
     println("Distributed Training Configuration")
     println("=" ^ 70)
     println("Output directory: $models_dir")
+    println("Temp directory: $temp_dir")
     println("Workers: $(nworkers())")
     println("Total jobs: $(length(jobs))")
     println("K values: $K_values")
     println("Model types: $model_types")
-    println("Censoring configs: $censoring_configs")
+    println("Censoring configs: $(length(censoring_configs)) configurations")
     println("Architecture: width=$width, n_hidden=$n_hidden, encoding_dim=$encoding_dim")
     println("Training: train_size=$train_size, epochs_nbe=$epochs_nbe, epochs_npe=$epochs_npe, m=$m")
     if haskey(ENV, "SLURM_JOB_ID")
@@ -295,11 +301,14 @@ function train_all_models(
 
     start_time = now()
 
-    # Use pmap for parallel execution with error handling
-    results = pmap(jobs; on_error=ex -> ex) do job
+    # Phase 1: Train models in parallel, each saving to its own file
+    println("Phase 1: Training models (each worker saves to individual file)...")
+
+    results = pmap(enumerate(jobs); on_error=ex -> ex) do (idx, job)
         try
-            model_id = train_and_save_locked(
-                models_dir,
+            output_file = train_and_save_individual(
+                temp_dir,
+                idx,
                 job.model_type,
                 job.K;
                 censoring_lower=job.censoring_lower,
@@ -313,50 +322,60 @@ function train_all_models(
                 m=m,
                 verbose=verbose
             )
-            return (job=job, model_id=model_id, error=nothing)
+            return (job=job, output_file=output_file, error=nothing)
         catch e
-            return (job=job, model_id=nothing, error=sprint(showerror, e, catch_backtrace()))
+            return (job=job, output_file=nothing, error=sprint(showerror, e, catch_backtrace()))
         end
     end
 
-    elapsed = now() - start_time
+    training_elapsed = now() - start_time
+    println("\nPhase 1 complete. Training time: $training_elapsed")
+
+    # Phase 2: Collect all results on main process (no concurrent access)
+    println("\nPhase 2: Collecting results (single process)...")
+    collect_start = now()
+
+    collected = collect_models(temp_dir, models_dir; verbose=verbose)
+
+    collect_elapsed = now() - collect_start
+    println("Phase 2 complete. Collection time: $collect_elapsed")
 
     # Summary
+    total_elapsed = now() - start_time
+
     println()
     println("=" ^ 70)
     println("Training Complete")
     println("=" ^ 70)
-    println("Elapsed time: $elapsed")
+    println("Total elapsed time: $total_elapsed")
+    println("  Training: $training_elapsed")
+    println("  Collection: $collect_elapsed")
 
-    # Handle results (some might be exceptions from on_error)
+    # Count results
     processed_results = map(results) do r
         if r isa Exception
-            return (job=nothing, model_id=nothing, error=sprint(showerror, r))
+            return (job=nothing, output_file=nothing, error=sprint(showerror, r))
         else
             return r
         end
     end
 
-    successes = filter(r -> r.error === nothing && r.model_id !== nothing, processed_results)
-    skipped = filter(r -> r.error === nothing && r.model_id === nothing && r.job !== nothing, processed_results)
+    successes = filter(r -> r.error === nothing && r.output_file !== nothing, processed_results)
     failures = filter(r -> r.error !== nothing, processed_results)
 
-    println("Trained: $(length(successes))")
-    println("Skipped (already exist): $(length(skipped))")
-    println("Failed: $(length(failures))")
+    println("\nTraining results:")
+    println("  Successful: $(length(successes))")
+    println("  Failed: $(length(failures))")
+    println("  Collected to registry: $collected")
 
     if !isempty(failures)
         println("\nFailures:")
         for r in failures
             job_desc = r.job !== nothing ? "$(r.job.model_type) K=$(r.job.K)" : "unknown job"
             println("  $job_desc:")
-            # Print first few lines of error
-            error_lines = split(r.error, '\n')
-            for line in error_lines[1:min(5, length(error_lines))]
+            error_lines = split(string(r.error), '\n')
+            for line in error_lines[1:min(3, length(error_lines))]
                 println("    $line")
-            end
-            if length(error_lines) > 5
-                println("    ... ($(length(error_lines) - 5) more lines)")
             end
         end
     end
@@ -376,6 +395,9 @@ function train_all_models(
 
     println("=" ^ 70)
 
+    # Optionally clean up temp directory
+    # rm(temp_dir; recursive=true, force=true)
+
     return results
 end
 
@@ -384,14 +406,12 @@ Main execution
 =#
 
 # Default training configuration - modify these as needed
-const MODELS_DIR = get(
-    ENV, "NEURALMSE_MODELS_DIR",
-    joinpath(dirname(dirname(@__FILE__)), "models")
-)
+const MODELS_DIR = get(ENV, "NEURALMSE_MODELS_PATH",
+                       joinpath(dirname(dirname(@__FILE__)), "trained_models"))
 
 const K_VALUES = collect(3:15)
 const MODEL_TYPES = [:nbe, :npe]
-const CENSORING_CONFIGS = [(x,y) for x in 0:1 for y in x:16]
+const CENSORING_CONFIGS = [(x, y) for x in 0:1 for y in x:16]
 
 # Training hyperparameters
 const WIDTH = 256
