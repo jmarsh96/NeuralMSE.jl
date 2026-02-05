@@ -45,7 +45,7 @@ println("Running with $(nworkers()) workers")
 # Load packages on all workers
 @everywhere begin
     using NeuralMSE
-    using NeuralMSE: ModelConfig
+    using NeuralMSE: ModelConfig, model_exists
     using Dates
     using JLD2
     using DataFrames
@@ -65,6 +65,7 @@ Worker function: Train and save to individual file (no concurrent access)
     """
     function train_and_save_individual(
         temp_dir::String,
+        models_dir::String,
         job_idx::Int,
         model_type::Symbol,
         K::Int;
@@ -81,6 +82,14 @@ Worker function: Train and save to individual file (no concurrent access)
     )
         worker_id = myid()
         hostname = gethostname()
+
+        # Check if model already exists in registry (skip if so)
+        if model_exists(models_dir; K=K, model_type=model_type,
+                       censoring_lower=censoring_lower,
+                       censoring_upper=censoring_upper)
+            verbose && println("[Worker $worker_id@$hostname] SKIPPED $model_type K=$K censor=($censoring_lower,$censoring_upper) - already in registry")
+            return nothing
+        end
 
         # Each job gets its own output file
         output_file = joinpath(temp_dir, "job_$(job_idx).jld2")
@@ -312,6 +321,7 @@ function train_all_models(
         try
             output_file = train_and_save_individual(
                 temp_dir,
+                models_dir,
                 idx,
                 job.model_type,
                 job.K;
@@ -365,10 +375,12 @@ function train_all_models(
     end
 
     successes = filter(r -> r.error === nothing && r.output_file !== nothing, processed_results)
+    skipped = filter(r -> r.error === nothing && r.output_file === nothing, processed_results)
     failures = filter(r -> r.error !== nothing, processed_results)
 
     println("\nTraining results:")
-    println("  Successful: $(length(successes))")
+    println("  Trained: $(length(successes))")
+    println("  Skipped (already in registry): $(length(skipped))")
     println("  Failed: $(length(failures))")
     println("  Collected to registry: $collected")
 
