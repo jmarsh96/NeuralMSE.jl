@@ -314,8 +314,26 @@ function train_all_models(
 
     start_time = now()
 
-    # Phase 1: Train models in parallel, each saving to its own file
-    println("Phase 1: Training models (each worker saves to individual file)...")
+    # Recover any temp models from a previous interrupted run
+    existing_temp_files = if isdir(temp_dir)
+        filter(f -> startswith(f, "job_") && endswith(f, ".jld2"), readdir(temp_dir))
+    else
+        String[]
+    end
+
+    if !isempty(existing_temp_files)
+        println("Found $(length(existing_temp_files)) temp files from a previous run, collecting...")
+        recovered = collect_models(temp_dir, models_dir; verbose=verbose)
+        println("Recovered $recovered models from previous run.\n")
+
+        # Clean up collected temp files so they don't interfere with new job numbering
+        for f in existing_temp_files
+            rm(joinpath(temp_dir, f); force=true)
+        end
+    end
+
+    # Train models in parallel, each saving to its own file
+    println("Training models (each worker saves to individual file)...")
 
     results = pmap(enumerate(jobs); on_error=ex -> ex) do (idx, job)
         try
@@ -343,16 +361,16 @@ function train_all_models(
     end
 
     training_elapsed = now() - start_time
-    println("\nPhase 1 complete. Training time: $training_elapsed")
+    println("\nTraining complete. Training time: $training_elapsed")
 
-    # Phase 2: Collect all results on main process (no concurrent access)
-    println("\nPhase 2: Collecting results (single process)...")
+    # Collect all results on main process (no concurrent access)
+    println("\nCollecting results (single process)...")
     collect_start = now()
 
     collected = collect_models(temp_dir, models_dir; verbose=verbose)
 
     collect_elapsed = now() - collect_start
-    println("Phase 2 complete. Collection time: $collect_elapsed")
+    println("Collection complete. Collection time: $collect_elapsed")
 
     # Summary
     total_elapsed = now() - start_time
