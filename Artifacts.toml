@@ -1,0 +1,445 @@
+# Artifacts.toml for NeuralMSE pretrained models
+#
+# Naming: neuralmse_models_k{K}_{type}_c{censoring_lower}[_b{batch}]
+# Batched entries include censoring_upper_min/max for zero-download lookup.
+# Run scripts/package_artifacts.jl to regenerate after retraining.
+
+[neuralmse_models_k3_nbe_c0]
+lazy = true
+git-tree-sha1 = "5a3f3e427b94d56668bdade083f8f2a7dacd9246"
+
+    [[neuralmse_models_k3_nbe_c0.download]]
+    sha256 = "0ac3d8532fd88feb97fb05dcd8657c98e84d9ed66ed723beea483627fb3d7fac"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k3_nbe_c0.tar.gz"
+
+[neuralmse_models_k3_nbe_c1]
+lazy = true
+git-tree-sha1 = "5b13efd6a9863edc7a09ba24200173fec11f9bce"
+
+    [[neuralmse_models_k3_nbe_c1.download]]
+    sha256 = "2e9e4e1758f78a11b6f7e8fab9451bcef8b46d1f437dd5e1f31fa0e20ed71fda"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k3_nbe_c1.tar.gz"
+
+[neuralmse_models_k3_npe_c0]
+lazy = true
+git-tree-sha1 = "14c29d027b4ca1a3ebcb71fbd97002f6bd009144"
+
+    [[neuralmse_models_k3_npe_c0.download]]
+    sha256 = "991ba6301d18ac6ae8afdf2d1e4495e570f0e8f74c0517229a8e5485ed111df4"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k3_npe_c0.tar.gz"
+
+[neuralmse_models_k3_npe_c1]
+lazy = true
+git-tree-sha1 = "94304eb8cf7ab0f2ef37d8c2b07112ada70f8f73"
+
+    [[neuralmse_models_k3_npe_c1.download]]
+    sha256 = "a03a075ffd28cd186107f88225984b099f2d8f53f9722fbf217a3549311bade8"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k3_npe_c1.tar.gz"
+
+[neuralmse_models_k4_nbe_c0]
+lazy = true
+git-tree-sha1 = "f880dade6721f30046eb4c62101ef70d5b57df77"
+
+    [[neuralmse_models_k4_nbe_c0.download]]
+    sha256 = "02a6da34a661bb11d7415a45c4bae6b6ad52f157e79f0186e3c27fe2d592f142"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k4_nbe_c0.tar.gz"
+
+[neuralmse_models_k4_nbe_c1]
+lazy = true
+git-tree-sha1 = "b78d0b662c9146c5f72bd4898231cb9945b54081"
+
+    [[neuralmse_models_k4_nbe_c1.download]]
+    sha256 = "e3a0d7b5a3ef481e9174a11b3c7dc1164abecd8f85194c2dfce251710bff6a81"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k4_nbe_c1.tar.gz"
+
+[neuralmse_models_k4_npe_c0]
+lazy = true
+git-tree-sha1 = "4ab1b987e3c6354552734b5b686e9c0c8b40e6c1"
+
+    [[neuralmse_models_k4_npe_c0.download]]
+    sha256 = "7197bc11c932a277d210eea74983baa17bbc5474adb174addbb833008add02d2"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k4_npe_c0.tar.gz"
+
+[neuralmse_models_k4_npe_c1]
+lazy = true
+git-tree-sha1 = "ff61193510cfcae51df7d41f49b8955aa3fd5742"
+
+    [[neuralmse_models_k4_npe_c1.download]]
+    sha256 = "8dd118ef27c28805d922de4b0b971aab863e7f4d62145042a3a57a897087f7ce"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k4_npe_c1.tar.gz"
+
+[neuralmse_models_k5_nbe_c0]
+lazy = true
+git-tree-sha1 = "9aa5e2b9423a30f727f0a919ea3e32c0b95112e5"
+
+    [[neuralmse_models_k5_nbe_c0.download]]
+    sha256 = "619a372f0b12ff76c8a4c9111dbe0ca4bc14b0a30f6b1af12ee131546be83e40"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k5_nbe_c0.tar.gz"
+
+[neuralmse_models_k5_nbe_c1]
+lazy = true
+git-tree-sha1 = "07dd5d05a500fb56c74172c2642019cbdc259887"
+
+    [[neuralmse_models_k5_nbe_c1.download]]
+    sha256 = "37eb8b48b229b3acccfb4546e60acdea1ceec79aa8d6b7b28548b25ad5ae912b"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k5_nbe_c1.tar.gz"
+
+[neuralmse_models_k5_npe_c0]
+lazy = true
+git-tree-sha1 = "1375c083d5ae3780b3cfdded165f849fb6c048bc"
+
+    [[neuralmse_models_k5_npe_c0.download]]
+    sha256 = "4f9eed5ea4c74b97009c61f981b399094b5a83756f211fa124ab794682c74db0"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k5_npe_c0.tar.gz"
+
+[neuralmse_models_k5_npe_c1]
+lazy = true
+git-tree-sha1 = "a20e75f4ec99d30f83624a7de15ba8e44acf953f"
+
+    [[neuralmse_models_k5_npe_c1.download]]
+    sha256 = "c1f2f3298d85dd65416fe2a2d91aebc23ba7b4cafa2e16b00aa2e6f34773242f"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k5_npe_c1.tar.gz"
+
+[neuralmse_models_k6_nbe_c0]
+lazy = true
+git-tree-sha1 = "bc3ac7f6574833860bd22458fb5c5ecbc95b5dd2"
+
+    [[neuralmse_models_k6_nbe_c0.download]]
+    sha256 = "6a587b5f837b52f1fa30985c42b922a7c10371c1c3f10c744b17595f46bb5741"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k6_nbe_c0.tar.gz"
+
+[neuralmse_models_k6_nbe_c1]
+lazy = true
+git-tree-sha1 = "7a34d79811f6c752cda3d15325e44c90d6d0e221"
+
+    [[neuralmse_models_k6_nbe_c1.download]]
+    sha256 = "05a7793db75a38775377642233d3e9f16f027374ad0de8075269f48dbf8305cb"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k6_nbe_c1.tar.gz"
+
+[neuralmse_models_k6_npe_c0]
+lazy = true
+git-tree-sha1 = "c0a9c508e6ab1c67b82919376847e5de856fa6f2"
+
+    [[neuralmse_models_k6_npe_c0.download]]
+    sha256 = "712fb8c7b3c390e14c016e9d161fe5a84d00b6ddf1353119ba24f01078478139"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k6_npe_c0.tar.gz"
+
+[neuralmse_models_k6_npe_c1]
+lazy = true
+git-tree-sha1 = "c04cde46bc143a9a9ebcf89ed080bd26a6ce2212"
+
+    [[neuralmse_models_k6_npe_c1.download]]
+    sha256 = "316ccb59eef20d0f97945d9483d0f30b78ed528c90393c554928ccf95159426b"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k6_npe_c1.tar.gz"
+
+[neuralmse_models_k7_nbe_c0]
+lazy = true
+git-tree-sha1 = "49f2e91952ebdc9e883b89cd63c8a011f87a3420"
+
+    [[neuralmse_models_k7_nbe_c0.download]]
+    sha256 = "28bc984a28257fdf1b962406a40c6407c11081d7af14a543560b1d8680184ce8"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k7_nbe_c0.tar.gz"
+
+[neuralmse_models_k7_nbe_c1]
+lazy = true
+git-tree-sha1 = "123de9caa19b8ba7c6775b6eea55156a250af1ad"
+
+    [[neuralmse_models_k7_nbe_c1.download]]
+    sha256 = "b052e58b46875ed76117be4b9cb98ef1e38fedd0a950534dedd2138f58c34722"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k7_nbe_c1.tar.gz"
+
+[neuralmse_models_k7_npe_c0]
+lazy = true
+git-tree-sha1 = "eaaf3efda32fbdb8c5c20f2417081642ceb766f3"
+
+    [[neuralmse_models_k7_npe_c0.download]]
+    sha256 = "b87e7fed135c42febb926da8e08c68ca1761370f1a1f4dc05b1ebab208a986c3"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k7_npe_c0.tar.gz"
+
+[neuralmse_models_k7_npe_c1]
+lazy = true
+git-tree-sha1 = "1b86959902d5738121855d788a83c76e20e70c83"
+
+    [[neuralmse_models_k7_npe_c1.download]]
+    sha256 = "3b9a3ec4d89b569be10f2f0aaa1c0b8f856ca5c28a23b9d28bd5d421c01f12c6"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k7_npe_c1.tar.gz"
+
+[neuralmse_models_k8_nbe_c0]
+lazy = true
+git-tree-sha1 = "469ace02ee3ffaf42b7fa96848de7ed8e94cef83"
+
+    [[neuralmse_models_k8_nbe_c0.download]]
+    sha256 = "dec707f4fe34bbb4a909b2674ac19da1bab51818b1e95280658cfa2024dfa2f3"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k8_nbe_c0.tar.gz"
+
+[neuralmse_models_k8_nbe_c1]
+lazy = true
+git-tree-sha1 = "9ae7611583bc3cdb97adeaa4f0889fc63f72848f"
+
+    [[neuralmse_models_k8_nbe_c1.download]]
+    sha256 = "0d3f635c85f0ea4b41f0c483bee6af3ae8a21c80ae337858eb8222b6645dcd95"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k8_nbe_c1.tar.gz"
+
+[neuralmse_models_k8_npe_c0]
+lazy = true
+git-tree-sha1 = "8e2c3d96918000ce10df501d04965d100b10be18"
+
+    [[neuralmse_models_k8_npe_c0.download]]
+    sha256 = "6165113a814b16dc2c3922dc205b05a48a484f8fc616270101aeadb552543b45"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k8_npe_c0.tar.gz"
+
+[neuralmse_models_k8_npe_c1]
+lazy = true
+git-tree-sha1 = "64f7012e324e3b250b99ede73ee29e5428b349c7"
+
+    [[neuralmse_models_k8_npe_c1.download]]
+    sha256 = "33683c8f0bb415ed66d96bd6874e37874daf76ff8d98585fb342365bf47c7e6c"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k8_npe_c1.tar.gz"
+
+[neuralmse_models_k9_nbe_c0]
+lazy = true
+git-tree-sha1 = "04e7f8f3518b51ad01843968e4747224bcb2aa46"
+
+    [[neuralmse_models_k9_nbe_c0.download]]
+    sha256 = "2ffcb2f0be852c823b52ec721a5449cee4cf83c6331dfb42c93331092d789584"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k9_nbe_c0.tar.gz"
+
+[neuralmse_models_k9_nbe_c1]
+lazy = true
+git-tree-sha1 = "7ee621569ab3c823a265c18f3fa81411493cd104"
+
+    [[neuralmse_models_k9_nbe_c1.download]]
+    sha256 = "be49d4d0b684314220409b26d07e4bf359f7a7d3886f4a671ebbbcb63c5a2715"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k9_nbe_c1.tar.gz"
+
+[neuralmse_models_k9_npe_c0]
+lazy = true
+git-tree-sha1 = "c1bd1763749db42965a2d3c51ebe2ea71f4a816b"
+
+    [[neuralmse_models_k9_npe_c0.download]]
+    sha256 = "8736813454f47c2625c6d5b87e511523a6f01376a8f56c663705230c098c2eb9"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k9_npe_c0.tar.gz"
+
+[neuralmse_models_k9_npe_c1]
+lazy = true
+git-tree-sha1 = "76519c91d4aedee34ee978642aea29b1492101ce"
+
+    [[neuralmse_models_k9_npe_c1.download]]
+    sha256 = "83e027ad8a21cc3019b15e685b3699e9576cc1bf2936e482571242c86c083a98"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k9_npe_c1.tar.gz"
+
+[neuralmse_models_k10_nbe_c0]
+lazy = true
+git-tree-sha1 = "34730b793a8b5361448bf237b4645eb13b44feb1"
+
+    [[neuralmse_models_k10_nbe_c0.download]]
+    sha256 = "1649fde1e9c31e42893e48a84ccc1d007b9440670f844ca41974baa8e697f9c7"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k10_nbe_c0.tar.gz"
+
+[neuralmse_models_k10_nbe_c1]
+lazy = true
+git-tree-sha1 = "38052878702a5f98b80a6d3a844cbf3ac89be537"
+
+    [[neuralmse_models_k10_nbe_c1.download]]
+    sha256 = "e6d70bb3c3dcfcd3a89d2216c50c35e7bbd8efbaaee6fbbf6a3c98e23bc9d519"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k10_nbe_c1.tar.gz"
+
+[neuralmse_models_k10_npe_c0]
+lazy = true
+git-tree-sha1 = "8f3820a16006b7ad4fabb5edfb02449a2d715026"
+
+    [[neuralmse_models_k10_npe_c0.download]]
+    sha256 = "15c68c9e207d289a821a2153625cc301e52268a9816b229b79896bbf73b3b6b2"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k10_npe_c0.tar.gz"
+
+[neuralmse_models_k10_npe_c1]
+lazy = true
+git-tree-sha1 = "2ad57611c90079a6f1aa02fc7fbe403277a86ecd"
+
+    [[neuralmse_models_k10_npe_c1.download]]
+    sha256 = "b7a171d5e3e5829acf26639869c0a3929e53a384fb997426f618944b5f5aee52"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k10_npe_c1.tar.gz"
+
+[neuralmse_models_k11_nbe_c0]
+lazy = true
+git-tree-sha1 = "e81e98dc97565fc0c56da7b345b26dff530e3fdf"
+
+    [[neuralmse_models_k11_nbe_c0.download]]
+    sha256 = "4ae717fff2b0dc014d6c6fc34c2c78e69310b894420feffdcba7aea59153a06c"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k11_nbe_c0.tar.gz"
+
+[neuralmse_models_k11_nbe_c1]
+lazy = true
+git-tree-sha1 = "c7255075a6333b5cb0f068543ad25d1cc39da873"
+
+    [[neuralmse_models_k11_nbe_c1.download]]
+    sha256 = "3314c58d08cdc9a3d541a950fe052f82c1a7674310a7b7cf8958c350ee785f6d"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k11_nbe_c1.tar.gz"
+
+[neuralmse_models_k11_npe_c0]
+lazy = true
+git-tree-sha1 = "9642cee11f402e3ac9e663ad18bc2afb3f8b44b5"
+
+    [[neuralmse_models_k11_npe_c0.download]]
+    sha256 = "c61119ec43be7b8a33354bb0172d8ee2b1ae481d2e7dd76acdf45de37805b993"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k11_npe_c0.tar.gz"
+
+[neuralmse_models_k11_npe_c1]
+lazy = true
+git-tree-sha1 = "825c00f8652052a7a5fa88a82152ae055ecf1939"
+
+    [[neuralmse_models_k11_npe_c1.download]]
+    sha256 = "094f131446a53d42256621e813fd49813117274d6eb96cbb1b379384eafb97f8"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k11_npe_c1.tar.gz"
+
+[neuralmse_models_k12_nbe_c0]
+lazy = true
+git-tree-sha1 = "9fc3b7d652734a78afd3c2bd5992fcf3acde8d8b"
+
+    [[neuralmse_models_k12_nbe_c0.download]]
+    sha256 = "2d3ab354f67ac67ad5ced333c08d9ffb55d3316a03e3408d48eee090dc6b3aaf"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k12_nbe_c0.tar.gz"
+
+[neuralmse_models_k12_nbe_c1]
+lazy = true
+git-tree-sha1 = "8473e1c4ed8236e8d3b4eeea100bee267ce907db"
+
+    [[neuralmse_models_k12_nbe_c1.download]]
+    sha256 = "7d3baf260ba790cf8ed9516f7b1574beb1c4e1ba06fc7be80bdc1cc8d8716f21"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k12_nbe_c1.tar.gz"
+
+[neuralmse_models_k12_npe_c0]
+lazy = true
+git-tree-sha1 = "b4826b7841f01039dbe5191bfd07d78298ec0077"
+
+    [[neuralmse_models_k12_npe_c0.download]]
+    sha256 = "c3bcf54f0af0164d4b35190c68d9e600ef562d5e7a7d10e414b342afb456bc30"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k12_npe_c0.tar.gz"
+
+[neuralmse_models_k12_npe_c1]
+lazy = true
+git-tree-sha1 = "fb95da91ee2fbe0b2f8c286a06bc4455f0930a24"
+
+    [[neuralmse_models_k12_npe_c1.download]]
+    sha256 = "f25a99b3a6f4ece7261b27f57f5fc6fee3b9881d3165843117322e7bd6bdbf20"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k12_npe_c1.tar.gz"
+
+[neuralmse_models_k13_nbe_c0]
+lazy = true
+git-tree-sha1 = "88646b2a66c1eac8f257f26f5de5cc14955d04ca"
+
+    [[neuralmse_models_k13_nbe_c0.download]]
+    sha256 = "baba6864122c261115dfc964fdab55835cc740939b0f4279159d0bdcf8ba5a98"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k13_nbe_c0.tar.gz"
+
+[neuralmse_models_k13_nbe_c1]
+lazy = true
+git-tree-sha1 = "4f799a729d4a7905fa76ac107ec9245e55a3be08"
+
+    [[neuralmse_models_k13_nbe_c1.download]]
+    sha256 = "33e7c4fcdfdedf288f3efc5ffdf82593b85c4c9b3d6029caab1ddb7d13ec2692"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k13_nbe_c1.tar.gz"
+
+[neuralmse_models_k13_npe_c0]
+lazy = true
+git-tree-sha1 = "be74377ec64dd1e344fe201e65cd85c320e619aa"
+
+    [[neuralmse_models_k13_npe_c0.download]]
+    sha256 = "aa698977bebb3579d9afa0803bb741c9188a78e1738cff8fba5f3e77898f37b7"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k13_npe_c0.tar.gz"
+
+[neuralmse_models_k13_npe_c1]
+lazy = true
+git-tree-sha1 = "f7a12113a92cd078d30c069686f05b67baed0fde"
+
+    [[neuralmse_models_k13_npe_c1.download]]
+    sha256 = "b4de4bd51a8b4c64455def5eba0721929cb67c0accc0448f5bc5cb23fb00ad2a"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k13_npe_c1.tar.gz"
+
+[neuralmse_models_k14_nbe_c0]
+lazy = true
+git-tree-sha1 = "7438af358ff14ed03c4185a462fe87f670c367e5"
+
+    [[neuralmse_models_k14_nbe_c0.download]]
+    sha256 = "13406528932ad7e33c7267f6841dfbfbfbc2b5c8ae3be740956494ded4aa6fd3"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k14_nbe_c0.tar.gz"
+
+[neuralmse_models_k14_nbe_c1]
+lazy = true
+git-tree-sha1 = "9aceeaa85021b59ce450bc7f5043f2510e177a0d"
+
+    [[neuralmse_models_k14_nbe_c1.download]]
+    sha256 = "6cc65aa4e109d8b751c7fb802e3351f0ba08ea03b3fd1d8cf6a16350766ae440"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k14_nbe_c1.tar.gz"
+
+[neuralmse_models_k14_npe_c0]
+lazy = true
+git-tree-sha1 = "e6da235a621b2119862e5a69d34dda1b2d152d59"
+
+    [[neuralmse_models_k14_npe_c0.download]]
+    sha256 = "daedfaa28fb34cac7cd58d183ec81d5f76598ec1e2474dddf03d8e831ad8d1b2"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k14_npe_c0.tar.gz"
+
+[neuralmse_models_k14_npe_c1]
+lazy = true
+git-tree-sha1 = "3ff63a56f0d921e1c69ae3f0c8175e5476958299"
+
+    [[neuralmse_models_k14_npe_c1.download]]
+    sha256 = "b58989add4d6de4d09631a5b582d9c51158235d5c48d073468be4864d388efdc"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k14_npe_c1.tar.gz"
+
+[neuralmse_models_k15_nbe_c0_b1]
+lazy = true
+git-tree-sha1 = "19720da249aedf00d985a2d637c021888fc58bf6"
+censoring_upper_min = 0
+censoring_upper_max = 8
+
+    [[neuralmse_models_k15_nbe_c0_b1.download]]
+    sha256 = "f76559057797f64684b1cb66244fc1d8d271560b28636faf4add8dbfb5f0f257"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k15_nbe_c0_b1.tar.gz"
+
+[neuralmse_models_k15_nbe_c0_b2]
+lazy = true
+git-tree-sha1 = "382fb5b3a5d0434084e7dcd5a6dc52bfc9648c9d"
+censoring_upper_min = 9
+censoring_upper_max = 16
+
+    [[neuralmse_models_k15_nbe_c0_b2.download]]
+    sha256 = "5550704819dbd37545c9212b4c5dc1bc0a2f165c86c5e1938c67e5d6453bab15"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k15_nbe_c0_b2.tar.gz"
+
+[neuralmse_models_k15_nbe_c1_b1]
+lazy = true
+git-tree-sha1 = "899dba11d56bd4f20a9260560839563828258701"
+censoring_upper_min = 1
+censoring_upper_max = 8
+
+    [[neuralmse_models_k15_nbe_c1_b1.download]]
+    sha256 = "a5f55dd2e91205b117295073a5fda2c8aa1d0a7007cb3911dcd2d775ffc949a1"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k15_nbe_c1_b1.tar.gz"
+
+[neuralmse_models_k15_nbe_c1_b2]
+lazy = true
+git-tree-sha1 = "97989ad409183c8d8914a23edfad1cba2f0620f5"
+censoring_upper_min = 9
+censoring_upper_max = 16
+
+    [[neuralmse_models_k15_nbe_c1_b2.download]]
+    sha256 = "846baacaadb64d622819ca6a6cf92b454385275d05afee07480105c6149d32f0"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k15_nbe_c1_b2.tar.gz"
+
+[neuralmse_models_k15_npe_c0]
+lazy = true
+git-tree-sha1 = "5e992107eee054934b83564e8b1f41ae136bef65"
+
+    [[neuralmse_models_k15_npe_c0.download]]
+    sha256 = "40022f97d4f162a7d016ca3308149e6cb9cd5ffba945ccb6037ebccda65dc21e"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k15_npe_c0.tar.gz"
+
+[neuralmse_models_k15_npe_c1]
+lazy = true
+git-tree-sha1 = "9d9fb0cfd33deae9129d219aa4cd919fd1b53913"
+
+    [[neuralmse_models_k15_npe_c1.download]]
+    sha256 = "6d00a556eadf7b4dfc61ee19cb34ea48c9642525b1675c46d8acad9d1b13415d"
+    url = "https://github.com/jmarsh96/NeuralMSE.jl/releases/download/v1.0.0/neuralmse_models_k15_npe_c1.tar.gz"
